@@ -24,7 +24,10 @@ threthold = st.slider("阈值", 0, 200, step=1)
 src = cv.imread('samples/src.jpg')
 gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
 ret, binary = cv.threshold(gray, 150, 200, cv.THRESH_BINARY)
-dst, h = cv.findContours(src, cv.RETR_FLOODFILL, cv.CHAIN_APPROX_SIMPLE)
+dst, h = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
-toImage = Image.fromarray(cv.cvtColor(dst, cv.COLOR_BGR2RGB))
+
+output = cv.drawContours(src, dst, -1, (0,225,0), 3)
+
+toImage = Image.fromarray(cv.cvtColor(output, cv.COLOR_BGR2RGB))
 st.image(toImage)
