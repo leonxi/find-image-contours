@@ -3,6 +3,7 @@ import streamlit as st
 from PIL import Image
 import cv2 as cv
 import tempfile
+import numpy as np
 
 st.write("""
 # 生成图片中图像的轮廓
@@ -23,11 +24,23 @@ threthold = st.slider("阈值", 0, 200, step=1)
 
 src = cv.imread('samples/src.jpg')
 gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+
+# 二值化
 ret, binary = cv.threshold(gray, 150, 200, cv.THRESH_BINARY)
-dst, h = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
+# 腐蚀
+kernel = np.ones((25, 25), int)
+erode = cv.erode(binary, kernel, iterations=1)
 
-output = cv.drawContours(src, dst, -1, (0,225,0), 3)
+# 膨胀
+kernel = np.ones((10, 10), int)
+dilate = cv.dilate(erode, kernel, iterations=1)
+
+# 查找轮廓
+dst, h = cv.findContours(dilate, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+black = np.zeros(src.shape)
+output = cv.drawContours(black, dst, -1, (0,225,0), 3)
 
 toImage = Image.fromarray(cv.cvtColor(output, cv.COLOR_BGR2RGB))
 st.image(toImage)
