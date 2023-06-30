@@ -121,5 +121,5 @@ for i in range(found):
         he, wi = rotated_canvas.shape[:2]
     
     to_rotated_canvas = Image.fromarray(cv.cvtColor(rotated_canvas, cv.COLOR_BGR2RGB))
-    st.write(i + 1, "(", he, ", ", wi, ")")
+    st.write("第", i + 1, "根 尺寸: (", he, ", ", wi, ")")
     st.image(to_rotated_canvas)
