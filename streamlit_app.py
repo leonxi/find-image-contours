@@ -20,6 +20,10 @@ contours = Image.open('samples/dst.png')
 with col2:
     st.image(contours)
 
+st.write("""
+## 寻找图片中的膜条位置
+""")
+
 inSrc = st.file_uploader("上传图片", type=['jpg', 'png', 'jpeg', 'bmp'])
 
 if inSrc is None:
@@ -29,6 +33,8 @@ else:
     tfile.write(inSrc.read())
 
     src = cv.imread(tfile.name)
+
+clonedSrc = src.copy()
 
 gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
 
@@ -53,12 +59,12 @@ kernel = cv.getStructuringElement(cv.MORPH_RECT, (dilate_kernel_sizex, dilate_ke
 dilate = cv.dilate(erode, kernel, iterations=1)
 
 # 查找轮廓
-dst, h = cv.findContours(dilate, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+foundContours, h = cv.findContours(dilate, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
 
 ouCol1, ouCol2 = st.columns(2)
 
 black = np.zeros(src.shape)
-output = cv.drawContours(black, dst, -1, (0,225,0), 3)
+output = cv.drawContours(black, foundContours, -1, (0,225,0), 3)
 forOutput = output.astype("uint8")
 
 toImage = Image.fromarray(cv.cvtColor(forOutput, cv.COLOR_BGR2RGB))
@@ -66,9 +72,50 @@ toImage = Image.fromarray(cv.cvtColor(forOutput, cv.COLOR_BGR2RGB))
 with ouCol1:
     st.image(toImage)
 
-srcOutput = cv.drawContours(src, dst, -1, (0,225,0), 3)
+srcOutput = cv.drawContours(src, foundContours, -1, (0,225,0), 3)
 
 toSrcImage = Image.fromarray(cv.cvtColor(srcOutput, cv.COLOR_BGR2RGB))
 #cv.imwrite("samples/new.png", srcOutput)
 with ouCol2:
     st.image(toSrcImage)
+
+found = len(foundContours)
+
+st.write("""
+## 分割图片中的{}根膜条
+""".format(found))
+
+# 裁剪边距
+margin = 5
+
+for i in range(found):
+    # 检测轮廓最小外接矩形，得到最小外接矩形的（中心（x, y），（宽，高），旋转角度）
+    rect = cv.minAreaRect(foundContours[i])
+    # 获取最小外接矩形的4个顶点坐标
+    box = np.intp(cv.boxPoints(rect))
+
+    # 原图像的高和宽
+    h, w = clonedSrc.shape[:2]
+    # 最小外接矩形的宽和高
+    rect_w, rect_h = int(rect[1][0]) + 1, int(rect[1][1]) + 1
+
+    if rect_w > rect_h:
+        # 旋转中心
+        x, y = int(box[1][0]), int(box[1][1])
+        M2 = cv.getRotationMatrix2D((x, y), rect[2], 1)
+        rotated_image = cv.warpAffine(clonedSrc, M2, (w * 2, h * 2))
+        y1, y2 = y - margin if y - margin > 0 else 0, y + rect_h + margin + 1
+        x1, x2 = x - margin if x - margin > 0 else 0, x + rect_w + margin + 1
+        rotated_canvas = rotated_image[y1 : y2, x1 : x2]
+    else:
+        # 旋转中心
+        x, y = int(box[2][0]), int(box[2][1])
+        M2 = cv.getRotationMatrix2D((x, y), rect[2] + 90, 1)
+        rotated_image = cv.warpAffine(clonedSrc, M2, (w * 2, h * 2))
+        y1, y2 = y - margin if y - margin > 0 else 0, y + rect_w + margin + 1
+        x1, x2 = x - margin if x - margin > 0 else 0, x + rect_h + margin + 1
+        rotated_canvas = rotated_image[y1 : y2, x1 : x2]
+    
+    to_rotated_canvas = Image.fromarray(cv.cvtColor(rotated_canvas, cv.COLOR_BGR2RGB))
+    st.write(i + 1)
+    st.image(to_rotated_canvas)
