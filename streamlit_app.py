@@ -5,6 +5,16 @@ import cv2 as cv
 import tempfile
 import numpy as np
 
+st.set_page_config(
+    page_title="寻找图片中的目标图像",
+    page_icon="🧊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        '星轨与瀑布': 'https://video-to-long-exposure.streamlit.app/'
+    }
+)
+
 st.write("""
 # 寻找图片中的目标图像
 通过对输入图片 ___二值化___ , 使用形态学的 ___腐蚀___ 和 ___膨胀___ 算法, 最后找到目标图像的轮廓, 本案例是针对病毒检测的膜条图像, 进行膜条图像获取, 并标记膜条的位置
