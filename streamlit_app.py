@@ -107,6 +107,7 @@ for i in range(found):
         y1, y2 = y - margin if y - margin > 0 else 0, y + rect_h + margin + 1
         x1, x2 = x - margin if x - margin > 0 else 0, x + rect_w + margin + 1
         rotated_canvas = rotated_image[y1 : y2, x1 : x2]
+        he, wi = rotated_canvas.shape[:2]
     else:
         # 旋转中心
         x, y = int(box[2][0]), int(box[2][1])
@@ -115,7 +116,8 @@ for i in range(found):
         y1, y2 = y - margin if y - margin > 0 else 0, y + rect_w + margin + 1
         x1, x2 = x - margin if x - margin > 0 else 0, x + rect_h + margin + 1
         rotated_canvas = rotated_image[y1 : y2, x1 : x2]
+        he, wi = rotated_canvas.shape[:2]
     
     to_rotated_canvas = Image.fromarray(cv.cvtColor(rotated_canvas, cv.COLOR_BGR2RGB))
-    st.write(i + 1)
+    st.write(i + 1, "(", he, ", ", wi, ")")
     st.image(to_rotated_canvas)
