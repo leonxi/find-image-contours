@@ -116,6 +116,8 @@ for i in range(found):
         y1, y2 = y - margin if y - margin > 0 else 0, y + rect_w + margin + 1
         x1, x2 = x - margin if x - margin > 0 else 0, x + rect_h + margin + 1
         rotated_canvas = rotated_image[y1 : y2, x1 : x2]
+        # 旋转180度，恢复原始图像的方向
+        rotated_canvas = cv.flip(rotated_canvas, -1)
         he, wi = rotated_canvas.shape[:2]
     
     to_rotated_canvas = Image.fromarray(cv.cvtColor(rotated_canvas, cv.COLOR_BGR2RGB))
